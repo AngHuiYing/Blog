@@ -102,7 +102,7 @@
                     {{-- 检查是否有图片 --}}
                     @if($post->images->isNotEmpty())
                         @foreach($post->images as $image)
-                            <img src="{{ Storage::url($image->image) }}" alt="Post Image">
+                            <img src="{{ asset($image->image) }}" alt="Post Image">
                         @endforeach
                     @else
                         <p class="no-images">No images available.</p>

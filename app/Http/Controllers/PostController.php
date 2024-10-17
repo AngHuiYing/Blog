@@ -23,28 +23,41 @@ class PostController extends Controller
 
     // 处理博客文章的提交
     public function store(Request $request)
-    {
-        $request->validate([
-            'title' => 'required',
-            'content' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
+{
+    // Validate the request
+    $request->validate([
+        'title' => 'required',
+        'content' => 'required',
+        'images' => 'nullable|array',  // Allow multiple images
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Validate each image
+    ]);
 
-        $post = Post::create([
-            'title' => $request->title,
-            'content' => $request->content,
-        ]);
+    // Create the post
+    $post = Post::create([
+        'title' => $request->title,
+        'content' => $request->content,
+    ]);
 
-        if ($request->hasFile('image') && $request->file('image') != null) {
-            $path = $request->file('image')->store('public/images');
+    // Handle image uploads
+    if ($request->hasFile('images')) {
+        foreach ($request->file('images') as $image) {
+            // Generate a unique name for each image
+            $imageName = time() . '-' . $image->getClientOriginalName();
+            
+            // Move the image to the public/Images directory
+            $image->move(public_path('Images'), $imageName);
+            
+            // Save the image path in the database
             Image::create([
                 'post_id' => $post->id,
-                'image' => $path,
+                'image' => 'Images/' . $imageName,  // Path relative to the public folder
             ]);
         }
-
-        return redirect()->route('posts.index');
     }
+
+    // Redirect back to the posts index page
+    return redirect()->route('posts.index');
+}
 
     public function edit($id){
 
@@ -53,21 +66,50 @@ class PostController extends Controller
         return view('edit', compact('post'));
     }
 
-    public function Update(Request $request, $id){
+    public function update(Request $request, $id)
+{
+    // Find the post to be updated
+    $post = Post::findOrFail($id);
 
-        $post = Post::findOrFail($id);
+    // Validate the request data
+    $request->validate([
+        'title' => 'required',
+        'content' => 'required',
+        'images' => 'nullable|array',  // Allow multiple images
+        'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Validate each image
+    ]);
 
-        $request->validate([
-            'title' => 'required',
-            'content' => 'required',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-        ]);
+    // Update title and content
+    $post->update([
+        'title' => $request->title,
+        'content' => $request->content,
+    ]);
 
-        //$sql= "UPDATE tasks SET title = '$request=title',"
-        $post->update($request->all());
+    // Handle image uploads
+    if ($request->hasFile('images')) {
+        // Delete old images (optional)
+        foreach ($post->images as $oldImage) {
+            if (file_exists(public_path($oldImage->image))) {
+                unlink(public_path($oldImage->image)); // Delete the old image
+            }
+            $oldImage->delete(); // Delete the old image record from the database
+        }
 
-        return redirect()->route('posts.index')->with('success', 'Task updated successfully');
+        // Upload new images
+        foreach ($request->file('images') as $image) {
+            $imageName = time() . '-' . $image->getClientOriginalName();
+            $image->move(public_path('Images'), $imageName);
+
+            // Save the new image path in the database
+            Image::create([
+                'post_id' => $post->id,
+                'image' => 'Images/' . $imageName,
+            ]);
+        }
     }
+
+    return redirect()->route('posts.index')->with('success', 'Post updated successfully');
+}
 
     public function delete($id){
 

@@ -140,9 +140,18 @@
         </div>
 
         <div>
-            <label for="image">Upload Image</label>
-            <input type="file" name="image" id="image" value="{{$post->image}}" multiple>
-        </div>
+    <label for="image">Upload Image</label>
+    <input type="file" name="images[]" id="image" multiple>
+</div>
+
+{{-- 显示已上传的图片 --}}
+@if($post->images->isNotEmpty())
+    <div class="existing-images">
+        @foreach($post->images as $image)
+            <img src="{{ asset($image->image) }}" alt="Existing Image" width="100" height="100">
+        @endforeach
+    </div>
+@endif
 
         <div>
             <button type="submit">Update Blog</button>

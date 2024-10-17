@@ -140,10 +140,9 @@
         </div>
 
         <div>
-            <label for="image">Upload Image</label>
-            <input type="file" name="image" id="image" multiple>
-        </div>
-
+    <label for="image">Upload Images</label>
+    <input type="file" name="images[]" id="image" multiple>
+</div>
         <div>
             <button type="submit">Create Blog</button>
         </div>
