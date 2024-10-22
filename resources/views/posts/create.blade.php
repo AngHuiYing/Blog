@@ -142,12 +142,31 @@
         <div>
     <label for="image">Upload Images</label>
     <input type="file" name="images[]" id="image" multiple>
+    <p class="error" id="image-error" style="display:none;">You can only upload up to 10 images.</p>
 </div>
         <div>
             <button type="submit">Create Blog</button>
         </div>
     </form>
     </div>
+
+    <script>
+        document.getElementById('image').addEventListener('change', function() {
+            var imageInput = this;
+            var errorElement = document.getElementById('image-error');
+            
+            // 检查文件数量是否超过10个
+            if (imageInput.files.length > 10) {
+                // 显示错误信息并清空文件输入框
+                errorElement.style.display = 'block';
+                imageInput.value = ''; // 清空输入框
+            } else {
+                // 隐藏错误信息
+                errorElement.style.display = 'none';
+            }
+        });
+    </script>
+    
 @endsection
 
 </body>

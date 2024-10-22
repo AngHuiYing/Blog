@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Post;
 use App\Models\Image;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
@@ -85,28 +86,53 @@ class PostController extends Controller
         'content' => $request->content,
     ]);
 
-    // Handle image uploads
-    if ($request->hasFile('images')) {
-        // Delete old images (optional)
-        foreach ($post->images as $oldImage) {
-            if (file_exists(public_path($oldImage->image))) {
-                unlink(public_path($oldImage->image)); // Delete the old image
+    // Handle deleting old images if requested
+    if ($request->has('delete_images')) {
+        $deleteImages = explode(',', $request->input('delete_images'));
+        foreach ($deleteImages as $imageId) {
+            $image = Image::find($imageId);
+            if ($image) {
+                $image->delete();
+                Storage::delete('public/images/' . $image->image); // 删除存储的图片文件
             }
-            $oldImage->delete(); // Delete the old image record from the database
-        }
-
-        // Upload new images
-        foreach ($request->file('images') as $image) {
-            $imageName = time() . '-' . $image->getClientOriginalName();
-            $image->move(public_path('Images'), $imageName);
-
-            // Save the new image path in the database
-            Image::create([
-                'post_id' => $post->id,
-                'image' => 'Images/' . $imageName,
-            ]);
         }
     }
+
+    // 已上传图片的路径数组
+    $existingImages = $post->images->pluck('image')->map(function ($image) {
+        return basename($image); // 取文件名
+    })->toArray();
+
+    // 处理新图片
+    // 处理新图片
+if ($request->hasFile('images')) {
+    if (count($request->file('images')) > 10) {
+        return back()->withErrors(['images' => 'You can only upload up to 10 images.']);
+    }
+
+    // 已上传图片的路径数组
+    $existingImages = $post->images->pluck('image')->map(function ($image) {
+        return basename($image); // 取文件名
+    })->toArray();
+
+    foreach ($request->file('images') as $image) {
+        $imageName = time() . '-' . $image->getClientOriginalName();
+
+        // 检查是否已经存在
+        if (in_array($image->getClientOriginalName(), $existingImages)) {
+            return back()->withErrors(['images' => 'One or more images are already uploaded.']);
+        }
+
+        // 存储图片
+        $image->move(public_path('Images'), $imageName);
+
+        // 保存新的图片路径
+        Image::create([
+            'post_id' => $post->id,
+            'image' => 'Images/' . $imageName,
+        ]);
+    }
+}    
 
     return redirect()->route('posts.index')->with('success', 'Post updated successfully');
 }
