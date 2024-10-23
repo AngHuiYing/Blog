@@ -136,7 +136,8 @@
 
         <div>
             <label for="content">Content</label>
-            <textarea name="content" id="content" rows="5" required>{{ old('content') }}</textarea>
+            <textarea name="content" id="content" rows="5" maxlength="200" required>{{ old('content') }}</textarea>
+            <p>Remaining characters: <span id="remaining-chars">200</span></p>
         </div>
 
         <div>

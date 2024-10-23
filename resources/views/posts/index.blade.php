@@ -21,12 +21,11 @@
         .container {
             width: 100%;
             background-color: #fff;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 边框阴影 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            border-radius: 8px; /* 圆角 */
+            border-radius: 8px;
         }
 
-        /* 网格布局样式 */
         .post-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -37,12 +36,12 @@
             background-color: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* 单个卡片阴影 */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease-in-out;
         }
 
         .post-card:hover {
-            transform: translateY(-10px); /* 悬停时卡片微微上移 */
+            transform: translateY(-10px);
             box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
@@ -80,6 +79,32 @@
             color: #888;
             font-style: italic;
         }
+
+        .post-content {
+            display: -webkit-box;
+            -webkit-line-clamp: 3; /* 限制显示3行 */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+            position: relative; /* 使容器能够定位 */
+        }
+
+        .more-container {
+            display: flex; /* 使用 flexbox 使内容和 ...more 在同一行 */
+            justify-content: flex-end; /* 右对齐 ...more */
+            position: absolute; /* 绝对定位 */
+            bottom: 0; /* 靠底部 */
+            right: 0; /* 靠右 */
+            background-color: white; /* 背景颜色与内容一致 */
+            padding-left: 10px; /* 左边距 */
+        }
+
+        .toggle-content {
+            color: grey;
+            cursor: pointer;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -96,14 +121,25 @@
             @foreach($posts as $post)
             <div class="post-card">
                 <h2><ins>{{ $post->title }}</ins></h2>
-                <p>{{ $post->content }}</p>
-                
+
+                <!-- 限制content显示3行 -->
+                <div class="post-content" id="content-{{ $post->id }}">
+                    {{ $post->content }}
+                    <!-- 这里添加一个新容器用于放置 ...more -->
+                    @if(strlen($post->content) > 150)  <!-- 如果内容超长才显示"more" -->
+                        <div class="more-container">
+                            <a href="javascript:void(0);" class="toggle-content" data-post-id="{{ $post->id }}">...more</a>
+                        </div>
+                    @endif
+                </div>
+                <br>
                 <div class="post-images">
                     {{-- 检查是否有图片 --}}
                     @if($post->images->isNotEmpty())
                         @foreach($post->images as $image)
                             <img src="{{ asset($image->image) }}" alt="Post Image">
                         @endforeach
+                    <br>
                     @else
                         <p class="no-images">No images available.</p>
                     @endif
@@ -115,7 +151,7 @@
                 @csrf
                 @method('DELETE')
                 <button type="submit" onclick="return confirm('Are you sure you want to delete this blog?')" style="color:grey;">Delete</button>
-            </form>
+                </form>
             </div>
             @endforeach
         </div>
@@ -124,6 +160,26 @@
         @endif
     </div>
 @endsection
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.toggle-content').forEach(function(toggleLink) {
+            toggleLink.addEventListener('click', function() {
+                var postId = this.getAttribute('data-post-id');
+                var contentElement = document.getElementById('content-' + postId);
+                
+                // 获取当前状态是 "...more" 还是 "Show less"
+                if (this.textContent === "...more") {
+                    contentElement.style.webkitLineClamp = 'unset'; // 显示所有行
+                    this.textContent = "Close";
+                } else {
+                    contentElement.style.webkitLineClamp = 3; // 限制回3行
+                    this.textContent = "...more";
+                }
+            });
+        });
+    });
+</script>
 
 </body>
 </html>

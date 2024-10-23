@@ -28,7 +28,7 @@ class PostController extends Controller
     // Validate the request
     $request->validate([
         'title' => 'required',
-        'content' => 'required',
+        'content' => 'required|max:200',
         'images' => 'nullable|array',  // Allow multiple images
         'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Validate each image
     ]);
@@ -75,7 +75,7 @@ class PostController extends Controller
     // Validate the request data
     $request->validate([
         'title' => 'required',
-        'content' => 'required',
+        'content' => 'required|max:200',
         'images' => 'nullable|array',  // Allow multiple images
         'images.*' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',  // Validate each image
     ]);

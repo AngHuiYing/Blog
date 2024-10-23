@@ -1,4 +1,3 @@
-//edit.blade.php
 
 <!DOCTYPE html>
 <html lang="en">
@@ -140,7 +139,6 @@
 
     {{-- 更新博客文章的表单 --}}
     <div class="center">
-    // 更新博客文章的表单
 <form class="blog-form" action="{{ route('update', $post->id) }}" method="POST" enctype="multipart/form-data">
     @csrf  {{-- 防止CSRF攻击 --}}
     @method('PUT')
@@ -151,9 +149,11 @@
     </div>
 
     <div>
-        <label for="content">Content</label>
-        <textarea name="content" id="content" rows="5" required>{{ $post->content }}</textarea>
-    </div>
+    <label for="content">Content</label>
+    <textarea name="content" id="content" rows="5" maxlength="200" required>{{ old('content', $post->content) }}</textarea>
+    <p>Remaining characters: <span id="remaining-chars">200</span></p>
+</div>
+
 
     <div>
         <label for="image">Upload Image</label>
@@ -248,6 +248,15 @@
             });
         });
     });
+
+    var contentTextarea = document.getElementById('content');
+    var remainingChars = document.getElementById('remaining-chars');
+
+    contentTextarea.addEventListener('input', function() {
+        var currentLength = contentTextarea.value.length;
+        remainingChars.textContent = 200 - currentLength;
+    });
+
 </script>
 
 @endsection
