@@ -166,6 +166,15 @@
                 errorElement.style.display = 'none';
             }
         });
+
+    var contentTextarea = document.getElementById('content');
+    var remainingChars = document.getElementById('remaining-chars');
+
+    contentTextarea.addEventListener('input', function() {
+        var currentLength = contentTextarea.value.length;
+        remainingChars.textContent = 200 - currentLength;
+    });
+    
     </script>
     
 @endsection
